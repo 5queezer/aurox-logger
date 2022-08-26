@@ -1,33 +1,27 @@
 version: "3.9"
 
 services:
-  web:
-    build: .
-    restart: always
+  reverse-proxy:
+    image: traefik:v2.8.3
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
-      - "8080:80"
-    environment:
-      DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@db/postgres"
-      WEBHOOK_PASSWORD:
-    depends_on:
-      - db
-    networks:
-      - back-tier
-      - front-tier
-  db:
-    image: postgres:latest
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-    networks:
-      - back-tier
+      # Web
+      - 80:80
+      - 443:443
     volumes:
-      - "db-data:/var/lib/postgresql/data"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Map the static configuration into the container
+      - ./config/static.yaml:/etc/traefik/traefik.yaml:ro
+      # Map the dynamic configuration into the container
+      - ./config/dynamic.yaml:/etc/traefik/dynamic.yaml:ro
+      # Map the certificats into the container
+      - ./certs:/etc/certs:ro
+    networks:
+      - proxy
 
 networks:
-  front-tier: {}
-  back-tier: {}
-
-volumes:
-  db-data:
-
+  proxy:
+    external: true
