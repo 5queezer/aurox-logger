@@ -3,5 +3,4 @@
 Logs the Aurox signals to a database.
 
 ## Configuration
-Set environment variables DATABASE_URL and WEBHOOK_PASSWORD
-
+Copy .env.sample to .env and and environment variables DATABASE_URL and WEBHOOK_PASSWORD
