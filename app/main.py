@@ -1,7 +1,7 @@
 import os
 from typing import Optional, List
 
-import fastapi.logger
+from git import Repo
 import uvicorn
 from databases import Database
 from fastapi import FastAPI, status, Depends, Request, Query
@@ -42,8 +42,6 @@ async def shutdown():
     await get_database().disconnect()
 
 
-
-
 @app.post("/long", status_code=status.HTTP_201_CREATED)
 @app.post("/short", status_code=status.HTTP_201_CREATED)
 async def create_signal(request: Request, signal: AuroxSignal = Depends(APIKeyJson(name='password')),
@@ -82,6 +80,21 @@ async def create_signal(request: Request, signal: AuroxSignal = Depends(APIKeyJs
     }
     logger.info(f'signal {long_or_short} {info}')
     return JSONResponse({'status': 'success', **info})
+
+
+@app.get("/version", status_code=status.HTTP_200_OK)
+async def show_version():
+    try:
+        repo = Repo(os.getcwd())
+        latest = repo.tags[-1]
+        return JSONResponse({
+            'status': 'success',
+            'version': str(latest)
+        })
+    except Exception:
+        return JSONResponse({
+            'status': 'error'
+        }, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
