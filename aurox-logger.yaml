@@ -19,7 +19,7 @@ services:
       # Define the network that should be used
       - "traefik.docker.network=proxy"
       # URL to reach this container
-      - "traefik.http.routers.webhook.rule=Host(`webhook.docker.localhost`)"
+      - "traefik.http.routers.webhook.rule=Host(`webhook.${DOMAIN}`)"
       # Activation of TLS
       - "traefik.http.routers.webhook.tls=true"
       # If port is different than 80, use the following service:
@@ -27,6 +27,8 @@ services:
     networks:
       - proxy
       - backend
+    volumes:
+      - ./app:/app
   db:
     image: postgres:latest
     container_name: database
