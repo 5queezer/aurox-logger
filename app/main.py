@@ -34,7 +34,12 @@ async def shutdown():
 
 @app.post("/", status_code=status.HTTP_201_CREATED)
 async def create_signal(signal: AuroxSignal = Depends(api_key_json), database: Database = Depends(get_database)):
-    exchange, symbol = signal.symbol.split(':')
+    try:
+        exchange, symbol = signal.symbol.split(':')
+    except ValueError:
+        exchange = None
+        symbol = signal.symbol
+
     values = {
         'timestamp': signal.timestamp,
         'type': 'LONG',

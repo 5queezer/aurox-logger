@@ -1,4 +1,5 @@
 from fastapi.openapi.models import Schema
+from dateutil.parser import parse, ParserError
 
 from sqlalchemy import MetaData, Column, CheckConstraint, Table, ForeignKey, Integer, DateTime, Text, Interval, Float, \
     Boolean, ForeignKeyConstraint, String, UniqueConstraint
@@ -49,22 +50,48 @@ class SignalBase(BaseModel):
     exchange: Optional[str]
     symbol: str
     price: Optional[float]
-    timeUnit: Optional[timedelta]
+    timeUnit: timedelta
     operator: Optional[str]
     indicators: Optional[List[IndicatorDB]]
 
 
 class AuroxSignal(BaseModel):
     message: str
-    price: float
+    price: Optional[float]
     symbol: str
-    timeUnit: timedelta | None = None
-    timestamp: datetime | None = None
+    timeUnit: timedelta
+    timestamp: Optional[datetime] = Field(default_factory=datetime.now)
     password: str | None = None
+
+    @validator('timestamp', pre=True, always=False)
+    def _secure_datetime(cls, value: str) -> datetime:
+        try:
+            return parse(value)
+        except ParserError:
+            return datetime.now()
 
     @validator('timeUnit', pre=True, always=True)
     def _time_unit_to_timedelta(cls, value: str) -> timedelta:
         return timeparse(value)
+
+    @validator('price', pre=True, always=False)
+    def _money_to_float(cls, text: str) -> float | None:
+        m = re.findall(r'([.,])', text)
+        try:
+            if len(m) >= 1:
+                if m[-1] == '.':
+                    # comma thousands separator
+                    text = text.replace(',', '')
+                    return float(text)
+                elif m[-1] == ',':
+                    # dot thousands separator
+                    text = text.replace('.', '')
+                    text = text.replace(',', '.')
+                    return float(text)
+            else:
+                return float(text)
+        except ValueError:
+            return None
 
 
 class SignalCreate(SignalBase):
@@ -84,14 +111,14 @@ signals = Table(
     "signals",
     metadata,
     Column('id', Integer, primary_key=True, autoincrement=True),
-    Column('timestamp', DateTime(timezone=True), nullable=False),
+    Column('timestamp', DateTime(timezone=True)),
     Column('type', String(length=5), nullable=False),
     CheckConstraint("type LIKE 'LONG' OR type LIKE 'SHORT'", name='type_validator'),
     Column('exchange', String(length=32)),
     Column('symbol', String(length=16), nullable=False),
     CheckConstraint("char_length(symbol) > 1", name='symbol_validator'),
-    Column('price', Float),
-    Column('timeUnit', Interval),
+    Column('price', Float, nullable=True),
+    Column('timeUnit', Interval, nullable=False),
     Column('operator', String(length=3)),
     CheckConstraint("operator LIKE 'AND' OR operator LIKE 'OR'", name='operator_validator'),
     UniqueConstraint('timestamp', 'type', 'exchange', 'symbol', 'timeUnit', 'operator')
