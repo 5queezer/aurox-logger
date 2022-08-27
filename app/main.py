@@ -61,18 +61,18 @@ async def create_signal(signal: AuroxSignal = Depends(api_key_json), database: D
     return signal_id
 
 
-@app.get("/", status_code=status.HTTP_200_OK)
-async def read_signal(symbol: str,
-                      limit: timedelta,
-                      timeUnit: timedelta = Optional[timedelta],
-                      exchange: str = Optional[str],
-                      operator: str = Optional[str],
-                      indicators: List[IndicatorDB] = Optional[List[IndicatorDB]],
-                      database: Database = Depends(get_database)):
+# @app.get("/", status_code=status.HTTP_200_OK)
+# async def read_signal(symbol: str,
+#                       limit: timedelta,
+#                       timeUnit: timedelta = Optional[timedelta],
+#                       exchange: str = Optional[str],
+#                       operator: str = Optional[str],
+#                       indicators: List[IndicatorDB] = Optional[List[IndicatorDB]],
+#                       database: Database = Depends(get_database)):
     # session = Session(database)
     # stmt = select(SignalBase).where(SignalBase.symbol.in_([symbol]))
     # return session.scalars(stmt)
-    pass
+
 
 
 if __name__ == '__main__':
