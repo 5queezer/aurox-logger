@@ -4,7 +4,7 @@ LABEL maintainer="Christian Pojoni <dev@pojoni.at>"
 
 RUN apk add --no-cache build-base git
 
-COPY requirements.txt /tmp/requirements.txt
+COPY ./requirements.txt /tmp/requirements.txt
 
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 

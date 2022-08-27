@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
 
 services:
   reverse-proxy:
@@ -17,10 +17,12 @@ services:
       - ./config/static.yaml:/etc/traefik/traefik.yaml:ro
       # Map the dynamic configuration into the container
       - ./config/dynamic.yaml:/etc/traefik/dynamic.yaml:ro
-      # Map the certificats into the container
+      # Map the certificates into the container
       - ./certs:/etc/certs:ro
     networks:
       - proxy
+    environment:
+      - TRAEFIK_BASIC_AUTH
 
 networks:
   proxy:
