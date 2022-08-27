@@ -16,7 +16,7 @@ from app.auth import APIKeyJson
 from app.middleware import ProcessTimeMiddleware, CatchAllExceptionsMiddleWare
 from datetime import timedelta
 from logging.config import dictConfig
-from log_config import *
+from app.log_config import *
 import logging
 
 dictConfig(log_config)
