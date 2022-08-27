@@ -3,6 +3,7 @@ from dateutil.parser import parse, ParserError
 
 from sqlalchemy import MetaData, Column, CheckConstraint, Table, ForeignKey, Integer, DateTime, Text, Interval, Float, \
     Boolean, ForeignKeyConstraint, String, UniqueConstraint
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, validator, root_validator
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -27,7 +28,10 @@ class IndicatorsCreate(BaseModel):
         message = payload['__root__']['message']
         signal_id = payload['__root__']['signal_id']
         header_regex = r'🔔 (?P<name>.+) 💱 (?P<symbol>.+) ⏱️ (?P<timeUnit>.+)\n+(?P<operator>\w+)\n'
-        header = re.match(header_regex, message).groupdict()
+        try:
+            header = re.match(header_regex, message).groupdict()
+        except AttributeError as e:
+            raise AttributeError('message is malformed')
         body = re.sub(header_regex, '', message)
         body_regex = r'\|\s+(?P<name>.+) (?P<valid>.*)'
         indicator_arr = []
