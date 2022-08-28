@@ -12,6 +12,8 @@ DOCKER_USER=`docker-credential-$(
     ) |
     last(.value)
 '`
-docker build $DOCKER_USER/webhook .
-docker tag $DOCKER_USER/webhook $DOCKER_USER/webhook:$VERSION
-docker push $DOCKER_USER/webhook
+docker build --tag $DOCKER_USER/webhook . && \
+    docker tag $DOCKER_USER/webhook $DOCKER_USER/webhook:$VERSION && \
+    docker push $DOCKER_USER/webhook:$VERSION && \
+    docker push $DOCKER_USER/webhook && \
+    echo success
