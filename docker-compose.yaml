@@ -1,3 +1,5 @@
+# to integrated with https://github.com/tomMoulard/make-my-server
+
 version: '3'
 
 services:
