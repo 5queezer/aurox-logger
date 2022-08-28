@@ -1,67 +1,41 @@
-version: "3"
+version: '3'
 
 services:
-  reverse-proxy:
-    image: traefik:${TRAEFIK_IMAGE_VERSION:-v2.8.3}
-    container_name: traefik
+  webhook:
+    image: 5queezer/webhook:latest
     restart: always
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - '${TRAEFIK_WEB_ENTRYPOINT:-80}:${TRAEFIK_WEB_ENTRYPOINT:-80}'
-      - '${TRAEFIK_WEBSECURE_ENTRYPOINT:-443}:${TRAEFIK_WEBSECURE_ENTRYPOINT:-443}'
     healthcheck:
-      test: [ 'CMD', 'traefik', 'healthcheck', '--ping' ]
+      test: [ 'CMD', 'curl', '0.0.0.0:80' ]
       interval: 10s
       timeout: 10s
       retries: 5
-    volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
-      - './traefik/logs:/logs'
-      - './traefik/dynamic_conf:/dynamic_conf'
-    networks:
-      - proxy
-    command:
-      # Provider
-      - '--providers.docker'
-      - '--providers.docker.exposedbydefault=${TRAEFIK_EXPOSED_BY_DEFAULT:-false}'
-      - '--providers.docker.network=traefik_proxy'
-      # Entrypoints
-      - '--entrypoints.web.address=:${TRAEFIK_WEB_ENTRYPOINT:-80}'
-      - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
-      - '--entrypoints.websecure.address=:${TRAEFIK_WEBSECURE_ENTRYPOINT:-443}'
-      # Let's Encrypt
-      - '--certificatesresolvers.le.acme.email=${ROOT_EMAIL:-changeme@changeme.org}'
-      - '--certificatesresolvers.le.acme.httpchallenge.entrypoint=webhook'
-      - '--certificatesresolvers.le.acme.httpchallenge=true'
-      - '--certificatesresolvers.le.acme.caserver=${ACME_SERVER:-https://acme-v02.api.letsencrypt.org/directory}'
-      - '--entrypoints.websecure.http.tls.certresolver=le'
-      # Logs
-      - '--accesslog.filepath=/logs/access.log'
-      - '--accesslog.format=json'
-      - '--log.filepath=/logs/traefik.log'
-      - '--log.format=json'
-      - '--log.level=${TRAEFIK_LOG_LEVEL:-ERROR}'
-      - '--metrics.prometheus'
-      # Misc
-      - '--api.dashboard'
-      - '--entrypoints.websecure.http.middlewares=compress@file,headers@file${TRAEFIK_PLUGINS:-}'
-      - '--experimental.plugins.fail2ban.modulename=github.com/tomMoulard/fail2ban'
-      - '--experimental.plugins.fail2ban.version=v0.6.6'
-      - '--global.checknewversion=${TRAEFIK_CHECK_NEW_VERSION:-false}'
-      - '--global.sendanonymoususage=${TRAEFIK_SEND_ANONYMOUS_USAGE:-false}'
-      - '--pilot.token=${TRAEFIK_PILOT_TOKEN:-}'
-      - '--ping'
-      - '--providers.file.directory=/dynamic_conf/'
-      - '--providers.file.watch=true'
+    environment:
+      DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@db/postgres"
+      WEBHOOK_PASSWORD: "${WEBHOOK_PASSWORD}"
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.traefik.rule=Host(`traefik.${SITE:-localhost}`)'
-      - 'traefik.http.routers.traefik.service=api@internal'
-      - 'traefik.http.routers.traefik.middlewares=basic_auth@docker'
-      # Middleware definitions
-      - 'traefik.http.middlewares.basic_auth.basicauth.users=${USERS?:err}'
-      - 'traefik.http.middlewares.basic_auth.basicauth.removeHeader=true'
+      - 'traefik.http.routers.webhook.rule=Host(`${SITE:-localhost}`) && PathPrefix(`/webhook`)}`)'
+      - 'traefik.http.services.webhook.loadbalancer.server.port=80'
+      - 'traefik.http.middlewares.strip.stripprefix.prefixes=/webhook'
+      - 'traefik.http.routers.webhook.middlewares=strip'
+    depends_on:
+      - db
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - 'srv'
+
+  db:
+    image: postgres:latest
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - "./webhook/data:/var/lib/postgresql/data"
+    labels:
+      - 'traefik.enable=false'
+
 networks:
-  proxy:
-    external: true
+    srv:
+      external: true

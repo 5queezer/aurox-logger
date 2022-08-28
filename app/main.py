@@ -97,7 +97,7 @@ async def show_version():
         }, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.get("/", status_code=status.HTTP_200_OK)
+@app.get("/get", status_code=status.HTTP_200_OK)
 async def read_signal(symbol: str,
                       limit: timedelta,
                       timeUnit: timedelta = Optional[timedelta],
