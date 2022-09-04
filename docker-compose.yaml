@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+  webhook:
+    image: '5queezer/webhook:${WEBHOOK_VERSION:-latest}'
+    restart: always
+    healthcheck:
+      test: [ 'CMD', 'curl', '0.0.0.0:80' ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    environment:
+      DATABASE_URL: 'postgresql://postgres:${POSTGRES_PASSWORD}@db/aurox'
+      WEBHOOK_PASSWORD: '${WEBHOOK_PASSWORD}'
+      LOG_LEVEL: 'DEBUG'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.webhook.rule=Host(`webhook.${SITE:-localhost}`)'
+      - 'traefik.http.services.webhook.loadbalancer.server.port=80'
+      - 'traefik.http.routers.webhook.entrypoints=websecure'
+      - 'traefik.http.routers.webhook.tls.certresolver=le'
+    depends_on:
+      - db
+      - traefik
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - 'srv'
+      - 'backend'
+    volumes:
+      - './webhook/app:/app'
+
+  db:
+    image: postgres:latest
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_DB: 'aurox'
+    volumes:
+      - 'postgres:/var/lib/postgresql/data'
+    labels:
+      - 'traefik.enable=false'
+    networks:
+      - 'backend'
+
+volumes:
+  postgres:
+
+networks:
+    srv:
+      external: true
+    backend:
+      internal: true
