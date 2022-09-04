@@ -28,8 +28,8 @@ services:
       - 'srv'
       - 'backend'
     volumes:
-      - './webhook/app:/app'
-      - './webhook/log:/log'
+      - './aurox-logger/app:/app'
+      - './aurox-logger/log:/log'
 
   db:
     image: postgres:latest
