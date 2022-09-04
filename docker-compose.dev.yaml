@@ -23,6 +23,9 @@ services:
       - 'backend'
     ports:
       - '80:80'
+    volumes:
+      - './app:/app'
+      - './log:/log'
 
   db:
     image: postgres:latest

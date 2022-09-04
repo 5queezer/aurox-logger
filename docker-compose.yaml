@@ -29,6 +29,7 @@ services:
       - 'backend'
     volumes:
       - './webhook/app:/app'
+      - './webhook/log:/log'
 
   db:
     image: postgres:latest
