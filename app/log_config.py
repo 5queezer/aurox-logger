@@ -22,24 +22,32 @@ log_config = {
     },
     "handlers": {
         "default": {
+            "level": "INFO",
             "formatter": "default",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
         },
         "debug": {
+            "level": "DEBUG",
             "formatter": "debug",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
         },
         "error": {
+            "level": "ERROR",
             "formatter": "file",
             "class": "logging.FileHandler",
             "filename": "log/errors.log",
+            "mode": "a"
         },
         "access": {
+            "level": "INFO",
             "formatter": "file",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": "log/access.log",
+            "mode": "a",
+            'maxBytes': 1048576,
+            'backupCount': 10
         },
     },
     "loggers": {
