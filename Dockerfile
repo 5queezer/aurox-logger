@@ -2,7 +2,7 @@ FROM python:alpine3.16
 
 LABEL maintainer="Christian Pojoni <dev@pojoni.at>"
 
-RUN apk add --no-cache build-base
+RUN apk add --no-cache build-base curl
 
 COPY ./requirements.txt /tmp/requirements.txt
 
