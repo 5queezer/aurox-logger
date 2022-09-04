@@ -16,12 +16,21 @@ from app.auth import APIKeyJson
 from app.middleware import ProcessTimeMiddleware, CatchAllExceptionsMiddleWare
 from datetime import timedelta
 
-from logging.config import dictConfig
-from app.log_config import log_config
 import logging
 
-dictConfig(log_config)
-logger = logging.getLogger(__name__.strip('_'))
+
+##loging
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+logging.basicConfig(level=os.getenv('DEBUG', None) and 'DEBUG' or 'INFO',
+                    format='%(levelname)6s | %(asctime)s %(message)s',
+                    datefmt='%a, %d %b %Y %H:%M:%S',
+                    filename='log/log.txt',
+                    filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+logger = logging.getLogger()
+
 
 app = FastAPI(
     middleware=[
@@ -119,5 +128,5 @@ async def read_signal(symbol: str,
 
 
 if __name__ == '__main__':
-    debug = os.getenv('DEBUG').lower() in ['true', 'yes', '1']
+    debug = os.getenv('DEBUG', '').lower() in ['true', 'yes', '1']
     uvicorn.run("app.main:app", port=8008, host='127.0.0.1', debug=debug)

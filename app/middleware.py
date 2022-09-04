@@ -1,9 +1,9 @@
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.middleware.base import BaseHTTPMiddleware
 import time
 
 from starlette.responses import JSONResponse, Response
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 class ProcessTimeMiddleware(BaseHTTPMiddleware):
