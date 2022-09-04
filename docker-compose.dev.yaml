@@ -39,7 +39,7 @@ services:
     networks:
       - 'backend'
     ports:
-      - '5432:5433'
+      - '127.0.0.1:2345:5433'
 
 volumes:
   postgres:
