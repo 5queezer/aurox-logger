@@ -121,7 +121,6 @@ async def read_signal(symbol: str,
                       limit: timedelta,
                       timeUnit: timedelta = Optional[timedelta],
                       exchange: str = Optional[str],
-                      operator: str = Optional[str],
                       indicators: List[IndicatorDB] = Optional[List[IndicatorDB]],
                       database: Database = Depends(get_database)):
     pass
